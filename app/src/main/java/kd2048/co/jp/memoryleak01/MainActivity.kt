@@ -4,6 +4,7 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import android.widget.TextView
 import java.lang.Thread.sleep
 import java.lang.ref.WeakReference
@@ -17,9 +18,10 @@ class MainActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val mText = findViewById<TextView>(R.id.text_hello)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        mAsync.mText = mText
+        val mText = findViewById<TextView>(R.id.text_hello)
+        mAsync.mRef = WeakReference(mText)
         mAsync.execute(60)
 
     }
@@ -33,7 +35,7 @@ class MainActivity : AppCompatActivity() {
 }
 
 class AsyncTaskAAA : AsyncTask<Int, Int?, Int?>() {
-    var mText: TextView? = null
+    var mRef: WeakReference<TextView?> = WeakReference(null)
     var mCount: Int = 0
 
     override fun doInBackground(vararg p0: Int?): Int {
@@ -44,6 +46,7 @@ class AsyncTaskAAA : AsyncTask<Int, Int?, Int?>() {
             publishProgress(mCount)
             mCount -= 1
             sleep(1000)
+            if (mRef.get() == null) break
         }
         return 0
     }
@@ -52,9 +55,9 @@ class AsyncTaskAAA : AsyncTask<Int, Int?, Int?>() {
         super.onProgressUpdate(*values)
         Log.d("kd>", "onProgressUpdate ${values[0]}")
 
-        Log.d("kd>", "onProgressUpdate mText ${mText}")
-        Log.d("kd>", "SetText.mText ${mText}")
-        mText?.setText("${values[0]}")
+        Log.d("kd>", "onProgressUpdate mText ${mRef.get()}")
+        Log.d("kd>", "SetText.mText ${mRef.get()}")
+        mRef.get()?.setText("${values[0]}")
     }
 
 
